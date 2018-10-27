@@ -17,4 +17,6 @@ func main() {
 		s := recover()
 		log.Println(s)
 	}()
+
+	go MessageHandler()
 }

@@ -32,3 +32,18 @@ func ConnHandler(w http.ResponseWriter, r *http.Request) {
 		broadcast <- msg
 	}
 }
+
+func MessageHandler()  {
+	for {
+		msg := <- broadcast
+
+		for client := range clients {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				log.Panicf("error: %v\n", err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
+	}
+}
