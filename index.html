@@ -3,30 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <script>
-        const ws = new WebSocket('ws://' + window.location.host + '/ws');
+        let ws = {
+            readyState: 0,
+        };
 
-        ws.onopen = function (event) {
-          const status = document.getElementById('status-flag');
-          status.style.fontWeight = 'bold';
-          status.innerText = event.type;
-        };
-        
-        ws.onclose = function (event) {
-            const status = document.getElementById('status-flag');
-            status.innerText = event.type;
-        };
+        function onOpen() {
+            ws = new WebSocket('ws://' + window.location.host + '/ws');
+            ws.onopen = function (event) {
+                const status = document.getElementById('status-flag');
+                status.style.fontWeight = 'bold';
+                status.innerText = event.type;
+            };
+            ws.addEventListener('message', addMessageToDOM);
+        }
+
+        function onClose() {
+            ws.close();
+            ws.onclose = function (event) {
+                const status = document.getElementById('status-flag');
+                status.innerText = event.type;
+            };
+            ws.removeEventListener('message', addMessageToDOM);
+        }
 
         function onSubmit(event) {
             event.preventDefault();
-            const username = event.target.username.value;
-            const message = event.target.message.value;
-            ws.send(JSON.stringify({
-                username: username,
-                content: message,
-            }))
+            if (ws.readyState !== 1) {
+                alert('Please open connection.');
+            } else {
+                const username = event.target.username.value;
+                const message = event.target.message.value;
+                ws.send(JSON.stringify({
+                    username: username,
+                    content: message,
+                }));
+                event.target.message.value = '';
+            }
         }
 
-        ws.addEventListener('message', function (event) {
+        function addMessageToDOM(event) {
             const msg = JSON.parse(event.data);
 
             const msgDiv = document.createElement('p');
@@ -34,10 +49,8 @@
             const contentDiv = document.createElement('span');
 
             msgDiv.className = 'flex-box';
-
             usernameDiv.innerText = msg.username;
             usernameDiv.style.fontWeight = 'bold';
-
             contentDiv.innerText = msg.content;
 
             msgDiv.appendChild(usernameDiv);
@@ -45,13 +58,15 @@
 
             const msgBox = document.getElementById('message-box');
             msgBox.appendChild(msgDiv);
-        })
+        }
+
     </script>
     <style>
         .box {
             width: 20rem;
             padding: 1rem;
         }
+
         .flex-box {
             display: flex;
             justify-content: space-between;
@@ -60,6 +75,7 @@
         #chat-box {
             border: 1px solid blue;
         }
+
         #message-box {
             border: 1px solid purple;
         }
@@ -67,23 +83,27 @@
     <title>Message To You</title>
 </head>
 <body>
-    <div class="flex-box">
-        <div class="box" id="chat-box">
-            <h1>chat</h1>
-            <p>status:&nbsp;<span id="status-flag"></span></p>
-            <form id="form" action="post" onsubmit="return onSubmit(event)">
-                <label for="username">username</label>
-                <input id="username" name="username" type="text">
-                <br>
-                <label for="message">message</label>
-                <input id="message" name="message" type="text">
-                <br>
-                <button type="submit">send</button>
-            </form>
+<div class="flex-box">
+    <div class="box" id="chat-box">
+        <h1>chat</h1>
+        <div>
+            <button type="button" onclick="return onOpen()">open</button>
+            <button type="button" onclick="return onClose()">close</button>
         </div>
-        <div class="box" id="message-box">
-            <h1>message</h1>
-        </div>
+        <p>status:&nbsp;<span id="status-flag">ready</span></p>
+        <form action="post" onsubmit="return onSubmit(event)">
+            <label for="username">username</label>
+            <input id="username" name="username" type="text" required>
+            <br>
+            <label for="message">message</label>
+            <input id="message" name="message" type="text" required>
+            <br>
+            <button type="submit">send</button>
+        </form>
     </div>
+    <div class="box" id="message-box">
+        <h1>message</h1>
+    </div>
+</div>
 </body>
 </html>
