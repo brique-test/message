@@ -14,7 +14,7 @@ func main() {
 
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
-		log.Panicln(err)
+		log.Panicln("server error: ", err)
 	}
 	defer func() {
 		s := recover()

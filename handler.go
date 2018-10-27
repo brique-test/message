@@ -19,28 +19,30 @@ func ConnHandler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	clients[conn] = true
+	log.Println("New connection created")
 
 	for {
 		var msg Message
 		err := conn.ReadJSON(&msg)
 		if err != nil {
-			log.Panicf("error: %v\n", err)
+			log.Println("conn: ", err)
 			delete(clients, conn)
 			break
 		}
 
 		broadcast <- msg
+		log.Printf("[%v] %v\n", msg.Username, msg.Content)
 	}
 }
 
-func MessageHandler()  {
+func MessageHandler() {
 	for {
-		msg := <- broadcast
+		msg := <-broadcast
 
 		for conn := range clients {
 			err := conn.WriteJSON(msg)
 			if err != nil {
-				log.Panicf("error: %v\n", err)
+				log.Println("message: ", err)
 				conn.Close()
 				delete(clients, conn)
 			}
