@@ -5,9 +5,10 @@ import (
 	"net/http"
 )
 
-func main()  {
+func main() {
 	log.Println("Server start on port 8000")
 	http.HandleFunc("/", HtmlHandler)
+	http.HandleFunc("/ws", ConnHandler)
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
 		log.Panicln(err)
