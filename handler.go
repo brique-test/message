@@ -37,12 +37,12 @@ func MessageHandler()  {
 	for {
 		msg := <- broadcast
 
-		for client := range clients {
-			err := client.WriteJSON(msg)
+		for conn := range clients {
+			err := conn.WriteJSON(msg)
 			if err != nil {
 				log.Panicf("error: %v\n", err)
-				client.Close()
-				delete(clients, client)
+				conn.Close()
+				delete(clients, conn)
 			}
 		}
 	}
