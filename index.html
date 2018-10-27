@@ -3,30 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <script>
+        /*
+        전역변수 ws 정의
+        WebSocket readyState를 표현하기 위해 기본값은 readyState: 0에 맞춤
+        참고: https://developer.mozilla.org/ko/docs/Web/API/WebSocket#Ready_state_constants
+        */
         let ws = {
             readyState: 0,
         };
 
         function onOpen() {
+            /*
+            open 버튼을 누르면 실행되는 함수
+            WebSocket 객체를 생성해 전역변수 ws에 할당
+            필수 파라미터로 url 주소를 입력
+            */
             ws = new WebSocket('ws://' + window.location.host + '/ws');
+            // 커넥션이 열릴 경우 이벤트 콜백 함수: event.type 값을 status-flag DOM에 전달
             ws.onopen = function (event) {
                 const status = document.getElementById('status-flag');
                 status.style.fontWeight = 'bold';
                 status.innerText = event.type;
             };
+            // ws에 메시지 이벤트 리스너 추가
             ws.addEventListener('message', addMessageToDOM);
         }
 
         function onClose() {
+            // close 버튼을 누르면 실행되는 커넥션 종료 함수
             ws.close();
+            // 커넥션이 닫힐 경우 이벤트 콜백 함수: event.type 값을 status-flag DOM에 전달
             ws.onclose = function (event) {
                 const status = document.getElementById('status-flag');
                 status.innerText = event.type;
             };
+            // 메시지 이벤트 리스너 제거
             ws.removeEventListener('message', addMessageToDOM);
         }
 
         function onSubmit(event) {
+            /*
+            메시지 전송 submit 함수
+            새로고침 방지
+            readyState 1이 아닐 경우 (OPEN 상태가 아닌 나머지 모든 경우) 경고 출력
+            정상 승인 시: username & content value를 받아 커넥션으로 send
+            */
             event.preventDefault();
             if (ws.readyState !== 1) {
                 alert('Please open connection.');
@@ -42,6 +63,11 @@
         }
 
         function addMessageToDOM(event) {
+            /*
+            메시지 이벤트 리스너 함수
+            메시지 이벤트가 감지되면 이벤트 파라미터에서 메시지 값을 받아 DOM 생성
+            message-box에 차례로 쌓임
+            */
             const msg = JSON.parse(event.data);
 
             const msgDiv = document.createElement('p');
